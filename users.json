@@ -1,0 +1,14 @@
+{
+    "collection": "users",
+    "updated_at": "2026-05-17 17:14:47",
+    "total": 1,
+    "records": [
+        {
+            "id": 1,
+            "username": "admin",
+            "password": "admin",
+            "role": "admin",
+            "nama": "Administrator"
+        }
+    ]
+}

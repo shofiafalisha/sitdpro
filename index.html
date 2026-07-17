@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi SITD - Sistem Informasi Tugas & Data (Edisi Pro)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: '#4F46E5', secondary: '#10B981', dark: '#0F172A' },
+                    fontFamily: { sans: ['Outfit', 'Poppins', 'sans-serif'], }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .dark .glass-card { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-item.active { background: linear-gradient(to right, #4F46E5, #6366F1); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .avatar-img { object-fit: cover; border-radius: 50%; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-dark text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <!-- AUTH SECTION -->
+    <div id="authSection" class="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 dark:from-slate-900 dark:to-slate-800 overflow-y-auto py-8">
+        
+        <!-- LOGIN CARD -->
+        <div id="loginCard" class="w-full max-w-md p-8 glass-card rounded-3xl shadow-2xl mx-4 animate-fade-in bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-2xl mb-3 shadow-sm">
+                    <i class="fa-solid fa-shield-halved text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">SITD Pro</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Sistem Informasi Tugas & Data Mahasiswa</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Email Akademik</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+                        <input type="email" id="loginEmail" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white" placeholder="contoh@gmail.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="loginPassword" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button type="button" onclick="forgotPassword()" class="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Lupa Password?</button>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm tracking-wide mt-2">
+                    Masuk ke Sistem
+                </button>
+                
+                <button type="button" onclick="toggleAuthCard('register')" class="w-full border border-slate-200 dark:border-slate-700 py-3 rounded-xl font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mt-3 dark:text-white">
+                    Buat Akun Portal Anda
+                </button>
+            </form>
+            <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700/50 text-center text-xs text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                <p>⚙️ <b>Akses Instan Admin:</b> admin@sitd.com (Pass: admin123)</p>
+            </div>
+        </div>
+
+        <!-- REGISTER CARD -->
+        <div id="registerCard" class="w-full max-w-md p-8 glass-card rounded-3xl shadow-2xl mx-4 animate-fade-in hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
+            <div class="text-center mb-5">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-2xl mb-2">
+                    <i class="fa-solid fa-user-plus text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Registrasi Akun</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Khusus Mahasiswa</p>
+            </div>
+            <form id="registerForm" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Nama Lengkap</label>
+                    <input type="text" id="regNama" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Nama Lengkap">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Email Akademik</label>
+                    <input type="email" id="regEmail" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="nama@gmail.com">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Fakultas / Prodi</label>
+                        <select id="regProdi" onchange="updateKelasDropdown('regProdi', 'regKelas')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white">
+                            <option value="">-- Pilih --</option>
+                            <option value="Teknik Informatika">Teknik Informatika</option>
+                            <option value="Sistem Informasi">Sistem Informasi</option>
+                            <option value="Teknik Industri">Teknik Industri</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Lanjutan Kelas</label>
+                        <select id="regKelas" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" disabled>
+                            <option value="">-- Kelas --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
+                    <input type="password" id="regPassword" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Minimal 6 Karakter">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Konfirmasi Password</label>
+                    <input type="password" id="regConfirmPassword" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Ulangi Password">
+                </div>
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all text-sm mt-3">
+                    Daftar Akun
+                </button>
+                <button type="button" onclick="toggleAuthCard('login')" class="w-full text-xs text-slate-500 dark:text-slate-400 font-medium text-center hover:underline mt-3 block">
+                    Sudah punya akun? Kembali ke Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainSection" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 z-50">
+            <!-- HEADER SIDEBAR DENGAN INDIKATOR ONLINE -->
+            <div class="p-6 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg"><i class="fa-solid fa-layer-group"></i></div>
+                    <span class="text-xl font-bold tracking-tight dark:text-white">SITD Pro</span>
+                </div>
+                <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/30">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                </span>
+            </div>
+            
+            <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar" id="sidebarNav"></nav>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="switchPage('profile')">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 font-bold overflow-hidden" id="userAvatarContainer"><span id="userInitial">A</span></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold truncate dark:text-white" id="userNameDisplay">User</p>
+                        <p class="text-xs text-slate-500 truncate" id="userRoleDisplay">Role</p>
+                    </div>
+                    <button onclick="logout(); event.stopPropagation();" class="text-slate-400 hover:text-red-500 transition-colors" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 overflow-hidden relative">
+            <header class="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-40 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight" id="pageTitle">Dashboard</h2>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:ring-2 ring-indigo-500 transition-all shadow-sm">
+                        <i class="fa-solid fa-moon dark:hidden"></i><i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                    </button>
+                    <div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                    <div class="flex items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-xl"><i class="fa-regular fa-clock"></i> <span id="currentTime">00:00:00</span></div>
+                </div>
+            </header>
+            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar relative" id="contentArea"></div>
+        </main>
+    </div>
+
+    <!-- CHATBOT AI -->
+    <div class="fixed bottom-6 right-6 z-[99]">
+        <button onclick="toggleChatbot()" class="w-14 h-14 bg-gradient-to-tr from-indigo-600 to-purple-500 hover:from-indigo-700 hover:to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition-all transform hover:scale-110 active:scale-95 relative group">
+            <i class="fa-solid fa-robot"></i><span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 animate-bounce"></span>
+            <span class="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md">Asisten AI SITD</span>
+        </button>
+        
+        <div id="chatbotBox" class="hidden absolute bottom-20 right-0 w-80 sm:w-96 h-[500px] glass-card rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-indigo-100 dark:border-slate-700">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white flex items-center justify-between shadow-md">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30"><i class="fa-solid fa-robot text-xl"></i></div>
+                    <div><h4 class="text-sm font-bold">Asisten AI Pintar</h4><p class="text-[10px] text-indigo-100 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Online & Siap Chat</p></div>
+                </div>
+                <button onclick="toggleChatbot()" class="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="chatLogs" class="flex-1 p-4 overflow-y-auto space-y-4 text-xs custom-scrollbar bg-slate-50/80 dark:bg-slate-900/80">
+                <div class="flex gap-2 items-end">
+                    <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shrink-0 font-bold shadow-sm">🤖</div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-bl-none shadow-sm max-w-[80%] border border-slate-100 dark:border-slate-700">
+                        Halo 👋 Saya asisten virtual SITD. Pilih topik di bawah atau ketik langsung pertanyaan Anda!
+                    </div>
+                </div>
+                <div class="pl-10 space-y-2 flex flex-col items-start" id="botOptions"></div>
+            </div>
+            <div class="p-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex gap-2 items-center">
+                <input type="text" id="aiChatInput" onkeypress="handleChatEnter(event)" placeholder="Ketik pesan di sini..." class="flex-1 bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500 border border-transparent dark:border-slate-700">
+                <button onclick="sendChat()" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GLOBAL -->
+    <div id="globalModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg glass-card rounded-3xl shadow-2xl overflow-hidden animate-fade-in border border-slate-200 dark:border-slate-700">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex justify-between items-center shadow-md">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i id="modalIcon" class="fa-solid fa-folder-plus"></i> <span id="modalTitle">Modal</span></h3>
+                <button onclick="closeModal('globalModal')" class="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="modalBody" class="p-6 bg-white dark:bg-slate-900"></div>
+        </div>
+    </div>
+
+    <script>
+        const KELAS_MAP = {
+            'Teknik Informatika': ['ICA 25', 'ICB 25', 'ICC 25', 'ICD 25'],
+            'Sistem Informasi': ['SIA 25', 'SIB 25', 'SIC 25', 'SID 25'],
+            'Teknik Industri': ['ITA 25', 'ITB 25', 'ITC 25', 'ITD 25']
+        };
+
+        const DB = {
+            load: (key) => JSON.parse(localStorage.getItem(key)) || [],
+            save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
+            init: () => {
+                let users = DB.load('sitd_users');
+                if (users.length === 0) {
+                    users = [
+                        { id: 1, name: 'Administrator', email: 'admin@sitd.com', password: 'admin123', role: 'admin', prodi: '-', kelas: '-', nim: '-', telepon: '-' },
+                        { id: 2, name: 'Mahasiswa User', email: 'mahasiswa@sitd.com', password: 'mahasiswa123', role: 'mahasiswa', prodi: 'Teknik Informatika', kelas: 'ICA 25', nim: '10293847', telepon: '08123456789' }
+                    ];
+                    DB.save('sitd_users', users);
+                }
+                if (!localStorage.getItem('sitd_tugas_admin')) DB.save('sitd_tugas_admin', []); // Kelola Tugas (Admin)
+                if (!localStorage.getItem('sitd_absensi')) DB.save('sitd_absensi', []);
+                if (!localStorage.getItem('sitd_tugas_kumpul')) DB.save('sitd_tugas_kumpul', []); // Tugas Terkumpul
+            }
+        };
+
+        let currentUser = null; let currentPage = 'dashboard';
+        let tasksData = []; let absensiData = []; let submissionsData = []; let usersData = [];
+        let appChart = null;
+
+        window.onload = () => {
+            DB.init(); checkSession(); updateTime(); setInterval(updateTime, 1000);
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else { document.documentElement.classList.remove('dark'); }
+        };
+
+        function updateTime() { document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}); }
+        function toggleDarkMode() { document.documentElement.classList.toggle('dark'); localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'; renderContent(); }
+        function toggleAuthCard(card) { document.getElementById('loginCard').classList.toggle('hidden', card === 'register'); document.getElementById('registerCard').classList.toggle('hidden', card !== 'register'); }
+        function togglePass(inputId, iconId) { 
+            const inp = document.getElementById(inputId); const icn = document.getElementById(iconId);
+            if(inp.type === 'password'){ inp.type = 'text'; icn.classList.replace('fa-eye', 'fa-eye-slash'); } 
+            else { inp.type = 'password'; icn.classList.replace('fa-eye-slash', 'fa-eye'); } 
+        }
+
+        function updateKelasDropdown(prodiId, kelasId) {
+            const prodi = document.getElementById(prodiId).value;
+            const klsSel = document.getElementById(kelasId);
+            klsSel.innerHTML = '<option value="">-- Kelas --</option>';
+            if(prodi && KELAS_MAP[prodi]) {
+                KELAS_MAP[prodi].forEach(k => klsSel.innerHTML += `<option value="${k}">${k}</option>`);
+                klsSel.disabled = false;
+            } else { klsSel.disabled = true; }
+        }
+
+        // --- AUTH LOGIC ---
+        document.getElementById('loginForm').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim(); const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Isi email dan password!' });
+            const user = DB.load('sitd_users').find(u => u.email === email && u.password === pass);
+            if (user) {
+                sessionStorage.setItem('sitd_session', JSON.stringify(user)); checkSession();
+                Swal.fire({ icon: 'success', title: 'Login Berhasil', text: `Selamat datang, ${user.name}!`, timer: 1500, showConfirmButton: false });
+            } else { Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Email atau password salah. Silakan coba lagi.' }); }
+        };
+
+        document.getElementById('registerForm').onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regNama').value.trim(); const email = document.getElementById('regEmail').value.trim();
+            const prodi = document.getElementById('regProdi').value; const kelas = document.getElementById('regKelas').value;
+            const pass = document.getElementById('regPassword').value; const conf = document.getElementById('regConfirmPassword').value;
+
+            if(!name || !email || !prodi || !kelas || !pass) return Swal.fire('Error', 'Lengkapi semua kolom!', 'warning');
+            if(pass.length < 6) return Swal.fire('Error', 'Password min 6 karakter!', 'error');
+            if(pass !== conf) return Swal.fire('Error', 'Konfirmasi password salah.', 'error');
+
+            let users = DB.load('sitd_users');
+            if(users.some(u => u.email === email)) return Swal.fire('Gagal', 'Email sudah terdaftar.', 'error');
+
+            users.push({ id: Date.now(), name, email, password: pass, role: 'mahasiswa', prodi, kelas, nim: '', telepon: '', avatar: null });
+            DB.save('sitd_users', users); Swal.fire('Sukses', 'Akun dibuat! Silakan login.', 'success'); toggleAuthCard('login');
+        };
+
+        function forgotPassword() { Swal.fire({ title: 'Reset', input: 'email', inputPlaceholder: 'Masukkan email', showCancelButton: true }).then(r => { if(r.isConfirmed) Swal.fire('Terkirim', 'Instruksi dikirim.', 'success'); }); }
+
+        function checkSession() {
+            const sess = sessionStorage.getItem('sitd_session');
+            if (sess) {
+                const freshUser = DB.load('sitd_users').find(u => u.id === JSON.parse(sess).id);
+                if(freshUser) { currentUser = freshUser; sessionStorage.setItem('sitd_session', JSON.stringify(freshUser)); showMain(); } 
+                else { logout(); }
+            }
+        }
+
+        function showMain() {
+            document.getElementById('authSection').classList.add('hidden'); document.getElementById('mainSection').classList.remove('hidden');
+            document.getElementById('userNameDisplay').innerText = currentUser.name;
+            document.getElementById('userRoleDisplay').innerText = currentUser.role === 'admin' ? 'Administrator' : currentUser.kelas;
+            const avC = document.getElementById('userAvatarContainer');
+            if(currentUser.avatar) avC.innerHTML = `<img src="${currentUser.avatar}" class="w-full h-full avatar-img">`;
+            else avC.innerHTML = `<span id="userInitial">${currentUser.name.charAt(0).toUpperCase()}</span>`;
+            
+            buildSidebar(); loadAllData(); switchPage('dashboard'); setupBotOptions();
+        }
+
+        function logout() { sessionStorage.removeItem('sitd_session'); location.reload(); }
+        function loadAllData() { tasksData = DB.load('sitd_tugas_admin'); absensiData = DB.load('sitd_absensi'); submissionsData = DB.load('sitd_tugas_kumpul'); usersData = DB.load('sitd_users'); }
+
+        // --- SIDEBAR BUILDER ---
+        function buildSidebar() {
+            const nav = document.getElementById('sidebarNav'); nav.innerHTML = `<p class="text-[10px] uppercase font-bold text-slate-400 px-4 mb-1 tracking-widest">Menu Utama</p>`;
+            
+            const btn = (id, icon, txt) => `<button onclick="switchPage('${id}')" class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" id="nav-${id}"><i class="fa-solid ${icon} w-5"></i><span class="font-medium text-sm">${txt}</span></button>`;
+            
+            nav.innerHTML += btn('dashboard', 'fa-house-chimney', 'Dashboard');
+            if(currentUser.role === 'admin'){
+                nav.innerHTML += btn('kelolaTugas', 'fa-tasks', 'Kelola Tugas');
+                nav.innerHTML += btn('dataPengumpulan', 'fa-box-archive', 'Data Pengumpulan');
+                nav.innerHTML += btn('dataAbsensi', 'fa-calendar-check', 'Data Absensi');
+                nav.innerHTML += btn('kelolaPengguna', 'fa-users-gear', 'Kelola Pengguna');
+            } else {
+                nav.innerHTML += btn('tugasSaya', 'fa-list-check', 'Tugas Saya');
+                nav.innerHTML += btn('kumpulTugas', 'fa-file-arrow-up', 'Kumpul Tugas');
+                nav.innerHTML += btn('dataAbsensi', 'fa-calendar-check', 'Absensi Digital');
+            }
+
+            nav.innerHTML += `<p class="text-[10px] uppercase font-bold text-slate-400 px-4 pt-3 mb-1 tracking-widest">Sistem</p>`;
+            nav.innerHTML += btn('about', 'fa-circle-info', 'Tentang Aplikasi');
+            nav.innerHTML += btn('help', 'fa-circle-question', 'Bantuan & FAQ');
+            
+            nav.innerHTML += `<p class="text-[10px] uppercase font-bold text-slate-400 px-4 pt-3 mb-1 tracking-widest">Pengaturan</p>`;
+            nav.innerHTML += btn('profile', 'fa-user-gear', 'Profil & Pengaturan');
+            
+            if(currentUser.role === 'admin'){
+                nav.innerHTML += `<div class="pt-3 border-t border-slate-100 dark:border-slate-800"><button onclick="exportToExcel()" class="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-xs font-semibold transition-all"><i class="fa-solid fa-file-excel w-4"></i><span>Export Database Excel</span></button></div>`;
+            }
+        }
+
+        function switchPage(page) {
+            currentPage = page; document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.getElementById(`nav-${page}`); if(activeNav) activeNav.classList.add('active');
+            
+            const titles = { dashboard: 'Dashboard Analitik', kelolaTugas: 'Manajemen Tugas', dataPengumpulan: 'Data Pengumpulan', dataAbsensi: 'Presensi & Kehadiran', kelolaPengguna: 'Manajemen Pengguna', tugasSaya: 'Tugas Saya', kumpulTugas: 'Pengumpulan Tugas', about: 'Sistem Informasi', help: 'Pusat Bantuan', profile: 'Pengaturan Profil' };
+            document.getElementById('pageTitle').innerText = titles[page] || 'Aplikasi SITD';
+            renderContent();
+        }
+
+        function renderContent() {
+            const container = document.getElementById('contentArea'); container.innerHTML = ''; loadAllData();
+            if(currentPage === 'dashboard') currentUser.role === 'admin' ? renderAdminDashboard(container) : renderMhsDashboard(container);
+            else if(currentPage === 'kelolaTugas') renderKelolaTugas(container);
+            else if(currentPage === 'dataPengumpulan') renderDataPengumpulan(container);
+            else if(currentPage === 'kelolaPengguna') renderKelolaPengguna(container);
+            else if(currentPage === 'tugasSaya') renderTugasSaya(container);
+            else if(currentPage === 'kumpulTugas') renderKumpulTugas(container);
+            else if(currentPage === 'dataAbsensi') renderDataAbsensi(container);
+            else if(currentPage === 'about') renderAbout(container);
+            else if(currentPage === 'help') renderHelp(container);
+            else if(currentPage === 'profile') renderProfile(container);
+        }
+
+        function openGlobalModal(title, icon, contentHtml) {
+            document.getElementById('modalTitle').innerText = title; document.getElementById('modalIcon').className = `fa-solid ${icon}`;
+            document.getElementById('modalBody').innerHTML = contentHtml; document.getElementById('globalModal').classList.remove('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // --- DASHBOARD ADMIN ---
+        function renderAdminDashboard(c) {
+            const isDark = document.documentElement.classList.contains('dark');
+            const mhsCount = usersData.filter(u=>u.role==='mahasiswa').length;
+            const gradedCount = submissionsData.filter(s=>s.nilai).length;
+
+            c.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-indigo-500 hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Total Tugas</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${tasksData.length}</h3></div><div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-tasks text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-emerald-500 hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Total Mahasiswa</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${mhsCount}</h3></div><div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-users text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-amber-500 hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Pengumpulan</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${submissionsData.length}</h3></div><div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 text-amber-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-inbox text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-rose-500 hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Tugas Dinilai</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${gradedCount}</h3></div><div class="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-check-double text-xl"></i></div></div></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in"><div class="lg:col-span-2 glass-card p-8 rounded-3xl shadow-sm"><h4 class="text-lg font-bold mb-6"><i class="fa-solid fa-chart-area text-indigo-500 mr-2"></i> Grafik Aktivitas Mahasiswa</h4><div class="h-64"><canvas id="mainChart"></canvas></div></div><div class="glass-card p-8 rounded-3xl shadow-sm"><h4 class="text-lg font-bold mb-6"><i class="fa-solid fa-clock-rotate-left text-indigo-500 mr-2"></i> Log Terbaru</h4><div class="space-y-4 max-h-[250px] overflow-y-auto custom-scrollbar">${renderLogsAdmin()}</div></div></div>`;
+            renderMixChart(isDark, 'Tugas Terkumpul', [2,5,3,8,10,7,15], 'Kehadiran', [10,12,11,15,14,12,18]);
+        }
+
+        function renderLogsAdmin() {
+            if(!submissionsData.length) return `<div class="text-center py-10 text-slate-400"><i class="fa-solid fa-box-open text-3xl mb-2"></i><p class="text-xs">Kosong</p></div>`;
+            return submissionsData.slice(-5).reverse().map(s => `<div class="flex gap-4 items-center bg-slate-50/50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/50"><div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-bolt"></i></div><div class="min-w-0 flex-1"><p class="text-sm font-bold truncate">${s.namaMhs}</p><p class="text-[10px] text-slate-400">Kumpul: ${s.judulTugas}</p></div></div>`).join('');
+        }
+
+        // --- DASHBOARD MAHASISWA ---
+        function renderMhsDashboard(c) {
+            const isDark = document.documentElement.classList.contains('dark');
+            const myTasks = tasksData; // Tasks targeted to them
+            const mySubmits = submissionsData.filter(s=>s.userId === currentUser.id);
+            const selesaiCount = mySubmits.length;
+            const aktifCount = myTasks.length - selesaiCount;
+            const myAbsen = absensiData.filter(a=>a.userId === currentUser.id);
+            const hadirCount = myAbsen.filter(a=>a.status === 'Hadir').length;
+            const persen = myAbsen.length ? Math.round((hadirCount/myAbsen.length)*100) : 0;
+            const nearest = tasksData.filter(t=>t.status==='Aktif').sort((a,b)=>new Date(a.deadline)-new Date(b.deadline))[0];
+
+            c.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-amber-500"><div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Tugas Aktif</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${aktifCount < 0 ? 0 : aktifCount}</h3></div><div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 text-amber-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-spinner text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-emerald-500"><div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Tugas Selesai</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${selesaiCount}</h3></div><div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-check text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-indigo-500"><div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Kehadiran</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">${persen}%</h3></div><div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-percent text-xl"></i></div></div></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm border-l-4 border-rose-500"><div class="flex justify-between items-start"><div><p class="text-slate-500 text-sm font-medium">Tugas Revisi</p><h3 class="text-3xl font-bold mt-1 text-slate-800 dark:text-white">0</h3></div><div class="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-rotate-left text-xl"></i></div></div></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in"><div class="lg:col-span-2 glass-card p-8 rounded-3xl shadow-sm"><h4 class="text-lg font-bold mb-6"><i class="fa-solid fa-chart-line text-indigo-500 mr-2"></i> Progress Penyelesaian Tugas</h4><div class="h-64"><canvas id="mainChart"></canvas></div></div>
+                <div class="space-y-6"><div class="glass-card p-6 rounded-3xl shadow-sm"><h4 class="text-md font-bold mb-4"><i class="fa-solid fa-bell text-amber-500 mr-2"></i> Notifikasi Terbaru</h4><div class="space-y-3 text-xs">${nearest ? `<div class="p-3 bg-rose-50 dark:bg-rose-900/20 text-rose-700 rounded-xl border border-rose-100">Deadline: ${nearest.judul} pada ${nearest.deadline}</div>` : ''} <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 rounded-xl border border-emerald-100">Selamat datang di SITD Pro!</div></div></div>
+                <div class="glass-card p-6 rounded-3xl shadow-sm"><h4 class="text-md font-bold mb-4"><i class="fa-regular fa-calendar text-indigo-500 mr-2"></i> Deadline Terdekat</h4><div class="text-sm font-bold text-slate-700 dark:text-slate-300">${nearest ? nearest.judul + ' <br><span class="text-xs text-rose-500 font-normal"><i class="fa-regular fa-clock"></i> '+nearest.deadline+'</span>' : 'Tidak ada deadline terdekat.'}</div></div></div></div>`;
+            renderMixChart(isDark, 'Tugas Baru', [1,2,1,3,0,2,1], 'Selesai', [0,1,2,1,1,2,1]);
+        }
+
+        function renderMixChart(isDark, l1, d1, l2, d2) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if (appChart) appChart.destroy();
+    
+            // Menggunakan gradient yang lebih soft ala web kedua
+            let blueGrad = ctx.createLinearGradient(0, 0, 0, 250);
+            blueGrad.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
+            blueGrad.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+    
+            appChart = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], 
+                    datasets: [
+                        { 
+                            type: 'line', 
+                            label: l1, 
+                            data: d1, 
+                            borderColor: '#4F46E5', 
+                            backgroundColor: blueGrad, 
+                            borderWidth: 3, 
+                            fill: true, 
+                            tension: 0.4 
+                        },
+                        { 
+                            type: 'bar', 
+                            label: l2, 
+                            data: d2, 
+                            backgroundColor: '#10B981', 
+                            borderRadius: 6, // Mengikuti gaya web kedua
+                            barThickness: 12  // Konsistensi ketebalan bar
+                        }
+                    ]
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            labels: { font: { size: 10 } } 
+                        } 
+                    }, 
+                    scales: { 
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { font: { size: 10 } } 
+                        }, 
+                        y: { 
+                            grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(128,128,128,0.1)' }, 
+                            ticks: { font: { size: 10 } } 
+                        } 
+                    } 
+                } 
+            });
+        }
+
+        // --- ADMIN: KELOLA TUGAS ---
+        function renderKelolaTugas(c) {
+            c.innerHTML = `
+                <div class="flex justify-between items-center gap-4 mb-6 animate-fade-in"><div class="relative w-full md:w-96"><span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-search"></i></span><input type="text" onkeyup="searchKelolaTugas(this.value)" class="w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm" placeholder="Cari Nama Tugas..."></div><button onclick="formTugasAdmin()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-lg transition-all"><i class="fa-solid fa-plus mr-2"></i>Tambah Tugas</button></div>
+                <div class="glass-card rounded-3xl shadow-sm overflow-hidden animate-fade-in"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"><th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 w-10">No</th><th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Nama Tugas & Deskripsi</th><th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Deadline</th><th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Status</th><th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 text-right">Aksi</th></tr></thead><tbody id="tblKelolaTugas" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div>
+            `; drawKelolaTugas(tasksData);
+        }
+        function drawKelolaTugas(data) {
+            const tbody = document.getElementById('tblKelolaTugas');
+            if(!data.length) { tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-400">Kosong</td></tr>`; return; }
+            tbody.innerHTML = data.map((t,i) => `
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 group">
+                    <td class="px-6 py-4 text-sm font-bold text-slate-500">${i+1}</td>
+                    <td class="px-6 py-4"><div class="font-bold text-sm">${t.judul}</div><div class="text-xs text-slate-400 mt-1 truncate max-w-xs">${t.deskripsi}</div></td>
+                    <td class="px-6 py-4 text-[11px] font-medium"><i class="fa-regular fa-calendar text-rose-500 mr-1"></i>${t.deadline}</td>
+                    <td class="px-6 py-4"><span class="px-3 py-1 text-[10px] font-bold rounded-full ${t.status==='Selesai'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${t.status}</span></td>
+                    <td class="px-6 py-4 text-right"><button onclick="formTugasAdmin(${t.id})" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 hover:bg-amber-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="deleteTugasAdmin(${t.id})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`).join('');
+        }
+        function searchKelolaTugas(q) { drawKelolaTugas(tasksData.filter(t=>t.judul.toLowerCase().includes(q.toLowerCase()))); }
+        function formTugasAdmin(id=null) {
+            let t = id ? tasksData.find(x=>x.id===id) : {id:'', judul:'', deskripsi:'', deadline:'', status:'Aktif'};
+            const html = `<form id="formTugasAdmin" class="space-y-4">
+                <input type="hidden" id="taId" value="${t.id}">
+                <div><label class="block text-sm font-semibold mb-1">Nama Tugas</label><input type="text" id="taJudul" value="${t.judul}" class="w-full px-4 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800 text-sm outline-none" required></div>
+                <div><label class="block text-sm font-semibold mb-1">Deskripsi / Catatan</label><textarea id="taDesc" class="w-full px-4 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800 text-sm outline-none" rows="3" required>${t.deskripsi}</textarea></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-semibold mb-1">Deadline</label><input type="datetime-local" id="taDead" value="${t.deadline}" class="w-full px-4 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800 text-sm outline-none" required></div>
+                    <div><label class="block text-sm font-semibold mb-1">Status</label><select id="taStat" class="w-full px-4 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800 text-sm outline-none"><option value="Aktif" ${t.status==='Aktif'?'selected':''}>Aktif (Proses)</option><option value="Selesai" ${t.status==='Selesai'?'selected':''}>Selesai</option></select></div>
+                </div>
+                <div><label class="block text-sm font-semibold mb-1">Lampiran Soal (Opsional/Link)</label><input type="text" id="taLamp" placeholder="Link Google Drive" class="w-full px-4 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800 text-sm outline-none"></div>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Simpan Tugas</button>
+            </form>`;
+            openGlobalModal(id?'Edit Tugas':'Tambah Tugas', 'fa-file-signature', html);
+            document.getElementById('formTugasAdmin').onsubmit = e => {
+                e.preventDefault(); const tid = document.getElementById('taId').value;
+                const newData = { id: tid?parseInt(tid):Date.now(), judul:document.getElementById('taJudul').value, deskripsi:document.getElementById('taDesc').value, deadline:document.getElementById('taDead').value, status:document.getElementById('taStat').value };
+                if(tid) tasksData[tasksData.findIndex(x=>x.id==tid)] = newData; else tasksData.push(newData);
+                DB.save('sitd_tugas_admin', tasksData); closeModal('globalModal'); switchPage('kelolaTugas'); Swal.fire('Sukses', 'Data disimpan', 'success');
+            };
+        }
+        function deleteTugasAdmin(id) { Swal.fire({title:'Hapus?',icon:'warning',showCancelButton:true,confirmButtonColor:'#ef4444'}).then(r=>{if(r.isConfirmed){tasksData=tasksData.filter(t=>t.id!==id);DB.save('sitd_tugas_admin',tasksData);switchPage('kelolaTugas');}}); }
+
+        // --- ADMIN: DATA PENGUMPULAN ---
+        function renderDataPengumpulan(c) {
+            c.innerHTML = `<div class="glass-card p-6 rounded-3xl shadow-sm mb-6 animate-fade-in"><div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select id="filterTugas" onchange="filterPengumpulan()" class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 text-sm outline-none"><option value="">-- Semua Tugas --</option>${tasksData.map(t=>`<option value="${t.id}">${t.judul}</option>`).join('')}</select>
+                <select id="filterProdiPeng" onchange="updateKelasDropdown('filterProdiPeng','filterKelasPeng'); filterPengumpulan()" class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 text-sm"><option value="">-- Semua Fakultas --</option><option value="Teknik Informatika">Teknik Informatika</option><option value="Sistem Informasi">Sistem Informasi</option><option value="Teknik Industri">Teknik Industri</option></select>
+                <select id="filterKelasPeng" onchange="filterPengumpulan()" class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 text-sm" disabled><option value="">-- Kelas --</option></select>
+            </div></div>
+            <div class="glass-card rounded-3xl shadow-sm overflow-hidden animate-fade-in"><div class="overflow-x-auto"><table class="w-full text-left border-collapse text-sm"><thead><tr class="bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"><th class="px-6 py-4">Mahasiswa</th><th class="px-6 py-4">Prodi/Kelas</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">File/Link</th><th class="px-6 py-4">Nilai</th><th class="px-6 py-4 text-right">Aksi</th></tr></thead><tbody id="tblPengumpulan" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div>`;
+            filterPengumpulan();
+        }
+        function filterPengumpulan() {
+            const tId = document.getElementById('filterTugas').value; const fPr = document.getElementById('filterProdiPeng').value; const fKl = document.getElementById('filterKelasPeng').value;
+            let res = submissionsData;
+            if(tId) res = res.filter(s=>s.taskId == tId);
+            if(fPr) res = res.filter(s=>s.prodi === fPr); if(fKl) res = res.filter(s=>s.kelas === fKl);
+            
+            const tbody = document.getElementById('tblPengumpulan');
+            if(!res.length) { tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400">Belum ada pengumpulan</td></tr>`; return; }
+            tbody.innerHTML = res.map(s => `<tr><td class="px-6 py-4 font-bold text-indigo-600">${s.namaMhs}<div class="text-[10px] text-slate-400">${s.judulTugas}</div></td><td class="px-6 py-4 text-xs">${s.prodi} - ${s.kelas}</td><td class="px-6 py-4 text-xs">${s.waktu}</td><td class="px-6 py-4">${s.fileData?`<button onclick="downloadFile('${s.fileData}','${s.fileName}')" class="text-emerald-500 font-bold text-xs"><i class="fa-solid fa-download"></i> ${s.fileName.substring(0,10)}...</button>`:(s.link?`<a href="${s.link}" target="_blank" class="text-blue-500 font-bold text-xs"><i class="fa-solid fa-link"></i> Link</a>`:'-')}</td><td class="px-6 py-4 font-bold text-amber-600">${s.nilai || '-'}</td><td class="px-6 py-4 text-right"><button onclick="beriNilai(${s.id})" class="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-lg border border-indigo-200">Beri Nilai</button></td></tr>`).join('');
+        }
+        function beriNilai(id) {
+            Swal.fire({title:'Beri Nilai (0-100)', input:'number', showCancelButton:true, inputValidator:v=>{if(!v||v<0||v>100)return 'Masukkan 0-100'}}).then(r=>{if(r.isConfirmed){
+                const idx = submissionsData.findIndex(s=>s.id===id); submissionsData[idx].nilai = r.value; DB.save('sitd_tugas_kumpul', submissionsData); filterPengumpulan();
+            }});
+        }
+
+        // --- ADMIN: KELOLA PENGGUNA ---
+        function renderKelolaPengguna(c) {
+            const mhs = usersData.filter(u=>u.role==='mahasiswa');
+            c.innerHTML = `<div class="flex justify-between mb-6"><h3 class="text-xl font-bold">Daftar Mahasiswa</h3><button onclick="formAddMhs()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold"><i class="fa-solid fa-plus"></i> Tambah</button></div><div class="glass-card rounded-3xl shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm border-collapse"><thead><tr class="bg-slate-100 dark:bg-slate-800/80"><th class="px-6 py-4">No</th><th class="px-6 py-4">Nama</th><th class="px-6 py-4">Email</th><th class="px-6 py-4">Prodi / Kelas</th><th class="px-6 py-4 text-right">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100 dark:divide-slate-800">${mhs.map((u,i)=>`<tr><td class="px-6 py-4">${i+1}</td><td class="px-6 py-4 font-bold">${u.name}</td><td class="px-6 py-4 text-slate-500">${u.email}</td><td class="px-6 py-4 text-xs">${u.prodi}<br><span class="font-bold">${u.kelas}</span></td><td class="px-6 py-4 text-right"><button onclick="resetPass(${u.id})" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 hover:bg-amber-100 mr-1"><i class="fa-solid fa-key"></i></button><button onclick="deleteUser(${u.id})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+        function formAddMhs() { toggleAuthCard('register'); logout(); /* Redirect admin to register page or open modal, for simplicity, modal is better */ 
+            Swal.fire('Info', 'Fitur tambah langsung gunakan halaman registrasi portal di luar login.', 'info');
+        }
+        function resetPass(id) { Swal.fire({title:'Password Baru', input:'text', showCancelButton:true}).then(r=>{if(r.isConfirmed&&r.value){let idx=usersData.findIndex(u=>u.id===id); usersData[idx].password=r.value; DB.save('sitd_users',usersData); Swal.fire('Sukses','Password diubah','success');}}); }
+        function deleteUser(id) { Swal.fire({title:'Hapus Mahasiswa?', icon:'warning', showCancelButton:true}).then(r=>{if(r.isConfirmed){usersData=usersData.filter(u=>u.id!==id); DB.save('sitd_users',usersData); switchPage('kelolaPengguna');}}); }
+
+        // --- MAHASISWA: TUGAS SAYA ---
+        function renderTugasSaya(c) {
+            c.innerHTML = `<div class="relative w-full md:w-96 mb-6"><span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-search"></i></span><input type="text" onkeyup="searchTugasSaya(this.value)" class="w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm" placeholder="Cari Tugas..."></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="gridTugasSaya"></div>`; drawTugasSaya(tasksData);
+        }
+        function drawTugasSaya(data) {
+            const grid = document.getElementById('gridTugasSaya');
+            if(!data.length) { grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Belum ada tugas dari dosen.</div>`; return; }
+            grid.innerHTML = data.map(t => {
+                const isSub = submissionsData.find(s=>s.taskId==t.id && s.userId==currentUser.id);
+                const stat = isSub ? 'Sudah Dikumpulkan' : (new Date() > new Date(t.deadline) ? 'Terlambat' : 'Belum Dikerjakan');
+                const col = stat==='Sudah Dikumpulkan'?'text-emerald-500 bg-emerald-50':(stat==='Terlambat'?'text-rose-500 bg-rose-50':'text-amber-500 bg-amber-50');
+                return `<div class="glass-card p-6 rounded-3xl shadow-sm border-t-4 border-indigo-500 flex flex-col h-full hover:-translate-y-1 transition-transform">
+                    <div class="flex-1"><span class="px-2 py-1 text-[9px] font-bold rounded-md ${col}">${stat}</span><h4 class="font-bold text-lg mt-3">${t.judul}</h4><p class="text-xs text-slate-500 mt-2 line-clamp-3">${t.deskripsi}</p></div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center"><div class="text-[10px] font-medium text-rose-500"><i class="fa-regular fa-clock"></i> ${t.deadline.replace('T', ' ')}</div><button onclick="switchPage('kumpulTugas')" class="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-indigo-700">Kerjakan</button></div></div>`;
+            }).join('');
+        }
+        function searchTugasSaya(q) { drawTugasSaya(tasksData.filter(t=>t.judul.toLowerCase().includes(q.toLowerCase()))); }
+
+        // --- MAHASISWA: KUMPUL TUGAS ---
+        function renderKumpulTugas(c) {
+            const activeTasks = tasksData.filter(t=>t.status==='Aktif');
+            c.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in"><div class="glass-card p-6 rounded-3xl h-fit border-t-4 border-indigo-500 shadow-sm"><h4 class="font-bold mb-6 flex items-center gap-2 text-lg"><i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i> Form Pengumpulan</h4>
+                <form id="tugasForm" class="space-y-4">
+                    <div><label class="block text-xs font-semibold mb-1 text-slate-500">Pilih Tugas *</label><select id="ktPilih" class="w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-900 text-sm outline-none" required><option value="">-- Pilih --</option>${activeTasks.map(t=>`<option value="${t.id}">${t.judul}</option>`).join('')}</select></div>
+                    <div><label class="block text-xs font-semibold mb-1 text-slate-500">Unggah Berkas (Max 2MB)</label><div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:bg-slate-50 cursor-pointer group" onclick="document.getElementById('ktFile').click()"><i class="fa-solid fa-file-arrow-up text-2xl text-indigo-400 mb-2"></i><p class="text-xs font-medium text-slate-500" id="fileLabel">Pilih file</p><input type="file" id="ktFile" class="hidden" onchange="document.getElementById('fileLabel').innerText=this.files[0]?.name||'Pilih file'"></div></div>
+                    <div class="flex items-center gap-2"><div class="h-px bg-slate-200 flex-1"></div><span class="text-[10px] font-bold text-slate-400">ATAU</span><div class="h-px bg-slate-200 flex-1"></div></div>
+                    <div><label class="block text-xs font-semibold mb-1 text-slate-500">Tautan Berkas (Opsional)</label><input type="url" id="ktLink" class="w-full px-4 py-2.5 border rounded-xl bg-white text-sm outline-none" placeholder="https://drive..."></div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Submit Tugas</button>
+                </form></div>
+                <div class="lg:col-span-2 glass-card p-6 rounded-3xl shadow-sm"><h4 class="font-bold text-lg mb-6"><i class="fa-solid fa-clock-rotate-left text-amber-500 mr-2"></i> Riwayat Pengumpulan Saya</h4>
+                <div class="space-y-3">${submissionsData.filter(s=>s.userId===currentUser.id).reverse().map(s=>`<div class="p-4 border rounded-2xl flex justify-between items-center"><div class="flex gap-3"><div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-check"></i></div><div><p class="font-bold text-sm">${s.judulTugas}</p><p class="text-[10px] text-slate-400">${s.waktu}</p></div></div><span class="px-2 py-1 text-[10px] bg-emerald-100 text-emerald-700 rounded-lg font-bold">Sukses</span></div>`).join('')||'<p class="text-center text-xs text-slate-400">Belum ada.</p>'}</div></div></div>
+            `;
+            document.getElementById('tugasForm').onsubmit = e => {
+                e.preventDefault(); const tId = document.getElementById('ktPilih').value; const lnk = document.getElementById('ktLink').value; const fIn = document.getElementById('ktFile');
+                if(!lnk && fIn.files.length===0) return Swal.fire('Oops','Upload file atau link!','warning');
+                const tName = tasksData.find(x=>x.id==tId).judul;
+                const save = (fd, fn) => {
+                    submissionsData.push({ id:Date.now(), taskId:tId, judulTugas:tName, userId:currentUser.id, namaMhs:currentUser.name, prodi:currentUser.prodi, kelas:currentUser.kelas, link:lnk, fileData:fd, fileName:fn, waktu:new Date().toLocaleString('id-ID'), nilai:null });
+                    DB.save('sitd_tugas_kumpul', submissionsData); switchPage('kumpulTugas'); Swal.fire('Sukses','Tugas disubmit.','success');
+                };
+                if(fIn.files.length>0){ const f=fIn.files[0]; if(f.size>2000000)return Swal.fire('Error','Max 2MB','warning'); const r=new FileReader(); r.onload=ev=>save(ev.target.result,f.name); r.readAsDataURL(f); } else save(null,null);
+            };
+        }
+
+        // --- DATA ABSENSI (ADMIN & MHS) ---
+        function renderDataAbsensi(c) {
+            if(currentUser.role === 'admin') {
+                c.innerHTML = `<div class="glass-card p-6 rounded-3xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between"><div class="flex gap-4"><select id="filterProdiAbsen" onchange="updateKelasDropdown('filterProdiAbsen','filterKelasAbsen'); filterAbsen()" class="px-4 py-2 border rounded-xl bg-white text-sm"><option value="">Semua Fakultas</option><option value="Teknik Informatika">Teknik Informatika</option><option value="Sistem Informasi">Sistem Informasi</option><option value="Teknik Industri">Teknik Industri</option></select><select id="filterKelasAbsen" onchange="filterAbsen()" class="px-4 py-2 border rounded-xl bg-white text-sm" disabled><option value="">Kelas</option></select></div><button onclick="exportAbsensiPDF()" class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold"><i class="fa-solid fa-file-pdf"></i> Unduh PDF</button></div><div class="glass-card rounded-3xl shadow-sm overflow-hidden"><table class="w-full text-left text-sm border-collapse"><thead><tr class="bg-slate-100 text-slate-500 uppercase text-xs"><th class="py-3 px-4">Nama Mahasiswa</th><th class="py-3 px-4">Prodi / Kelas</th><th class="py-3 px-4">Waktu</th><th class="py-3 px-4">Status & Ket</th></tr></thead><tbody id="tblAbsensi" class="divide-y divide-slate-100"></tbody></table></div>`; filterAbsen();
+            } else {
+                const myAb = absensiData.filter(a=>a.userId===currentUser.id); const hadir = myAb.filter(a=>a.status==='Hadir').length; const izin = myAb.filter(a=>a.status==='Izin').length; const alpha = myAb.filter(a=>a.status==='Tdk Hadir').length;
+                c.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="space-y-6"><div class="glass-card p-6 rounded-3xl border-t-4 border-emerald-500 shadow-sm"><h4 class="font-bold mb-4 text-lg"><i class="fa-solid fa-fingerprint text-emerald-500"></i> Form Kehadiran</h4><form id="formAbsenMhs" class="space-y-4"><div><select id="abStat" class="w-full px-4 py-2.5 border rounded-xl bg-white text-sm"><option value="Hadir">Hadir</option><option value="Izin">Izin</option><option value="Tdk Hadir">Tdk Hadir</option></select></div><div><input type="text" id="abKet" placeholder="Keterangan..." class="w-full px-4 py-2.5 border rounded-xl bg-white text-sm"></div><button class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md">Rekam Kehadiran</button></form></div>
+                        <div class="glass-card p-6 rounded-3xl shadow-sm"><h4 class="font-bold text-md mb-4">Statistik Kehadiran</h4><div class="flex justify-between text-xs font-bold mb-2"><span class="text-emerald-600">Hadir: ${hadir}</span><span class="text-blue-600">Izin: ${izin}</span><span class="text-rose-600">Alpa: ${alpha}</span></div></div></div>
+                        <div class="lg:col-span-2 glass-card p-6 rounded-3xl shadow-sm"><div class="flex justify-between items-center mb-6"><h4 class="font-bold text-lg">Riwayat Presensi</h4><button onclick="exportAbsensiPDF()" class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-pdf"></i> Unduh PDF</button></div><div class="space-y-3">${myAb.reverse().map(a=>`<div class="p-3 border rounded-xl flex justify-between items-center"><div><div class="text-xs text-slate-400">${a.waktu}</div><div class="font-bold text-sm">${a.keterangan||'-'}</div></div><span class="px-2 py-1 text-[10px] font-bold rounded bg-slate-100 ${a.status==='Hadir'?'text-emerald-600':'text-amber-600'}">${a.status}</span></div>`).join('')||'<p class="text-xs text-slate-400">Belum ada.</p>'}</div></div>
+                    </div>`;
+                document.getElementById('formAbsenMhs').onsubmit = e => { e.preventDefault(); absensiData.push({userId:currentUser.id, nama:currentUser.name, prodi:currentUser.prodi, kelas:currentUser.kelas, status:document.getElementById('abStat').value, keterangan:document.getElementById('abKet').value, waktu:new Date().toLocaleString('id-ID')}); DB.save('sitd_absensi',absensiData); switchPage('dataAbsensi'); Swal.fire('Berhasil','Presensi direkam','success'); };
+            }
+        }
+        function filterAbsen() {
+            let res = absensiData; const fp=document.getElementById('filterProdiAbsen').value; const fk=document.getElementById('filterKelasAbsen').value;
+            if(fp)res=res.filter(a=>a.prodi===fp); if(fk)res=res.filter(a=>a.kelas===fk);
+            document.getElementById('tblAbsensi').innerHTML = res.map(a=>`<tr><td class="py-3 px-4 font-bold text-sm">${a.nama}</td><td class="py-3 px-4 text-xs">${a.prodi}<br>${a.kelas}</td><td class="py-3 px-4 text-xs">${a.waktu}</td><td class="py-3 px-4"><span class="font-bold text-xs ${a.status==='Hadir'?'text-emerald-600':'text-amber-600'}">${a.status}</span> <span class="text-[10px] text-slate-400">(${a.keterangan||'-'})</span></td></tr>`).join('')||`<tr><td colspan="4" class="text-center py-6">Kosong</td></tr>`;
+        }
+
+        // --- SISTEM & PENGATURAN ---
+function renderAbout(c) {
+    const txt = currentUser.role === 'admin' 
+        ? 'Akses Super Admin: Anda memiliki kontrol penuh untuk mengelola Tugas (membuat, mengedit, hapus), melihat rekapitulasi data pengumpulan seluruh mahasiswa, melihat dan memfilter presensi, hingga mengelola (tambah/reset password) seluruh pengguna portal.' 
+        : 'Akses Mahasiswa: Platform ini dirancang untuk memudahkan Anda melihat tugas aktif, mengumpulkan laporan (via file max 2MB atau Link GDrive), serta melakukan presensi harian secara real-time yang bisa diunduh dalam bentuk PDF.';
+    
+    c.innerHTML = `
+        <div class="glass-card p-8 rounded-3xl shadow-sm max-w-4xl mx-auto animate-fade-in">
+            <div class="text-center mb-8 pb-6 border-b border-slate-200 dark:border-slate-800">
+                <div class="inline-flex w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-2xl items-center justify-center text-3xl mb-4 shadow-inner">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Tentang Sistem SITD Pro</h3>
+                <p class="text-sm text-slate-500 mt-1">Sistem Informasi Berbasis Interaksi Manusia & Komputer</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-6 bg-indigo-50 dark:bg-slate-800/50 rounded-2xl border border-indigo-100 dark:border-slate-700 shadow-sm">
+                    <h4 class="font-bold text-indigo-700 dark:text-indigo-400 mb-3 text-lg">
+                        <i class="fa-solid fa-id-card-clip mr-2"></i>Hak Akses Anda
+                    </h4>
+                    <p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">${txt}</p>
+                </div>
+                <div class="p-6 bg-emerald-50 dark:bg-slate-800/50 rounded-2xl border border-emerald-100 dark:border-slate-700 shadow-sm">
+                    <h4 class="font-bold text-emerald-700 dark:text-emerald-400 mb-3 text-lg">
+                        <i class="fa-solid fa-bullseye mr-2"></i>Fokus Pengembangan
+                    </h4>
+                    <ul class="list-disc pl-5 text-sm space-y-2 text-slate-700 dark:text-slate-300">
+                        <li>Penerapan <b>Dark Mode</b> cerdas untuk kenyamanan mata.</li>
+                        <li><b>System Feedback</b> (SweetAlert) di setiap aksi (CRUD).</li>
+                        <li><b>Error Prevention</b>: validasi ukuran file maksimal 2MB.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderHelp(c) {
+    const faq = currentUser.role === 'admin' ? `
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Cara melihat rekap mahasiswa?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Masuk ke menu Data Pengumpulan atau Data Absensi, gunakan dropdown filter Fakultas dan Kelas di bagian atas tabel.
+            </p>
+        </div>
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Cara Expor Database?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Tombol export Excel tersedia khusus Admin di bagian paling bawah sidebar kiri untuk mengamankan data LocalStorage Anda.
+            </p>
+        </div>
+        <!-- PANDUAN BARU UNTUK ADMIN -->
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Bagaimana cara mereset password pengguna/mahasiswa?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Buka menu <b>Kelola Pengguna</b>, cari nama atau NIM akun yang dituju, lalu gunakan tombol aksi <b>Reset Password</b> untuk mengatur ulang kata sandi mereka secara instan jika terjadi kendala login.
+            </p>
+        </div>` 
+    : `
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Cara kumpul tugas?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Buka menu Kumpul Tugas, pilih tugas di dropdown, lampirkan file/link, lalu klik Submit. Ukuran file maksimal dibatasi hingga 2MB.
+            </p>
+        </div>
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Cara unduh bukti absen?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Di menu Data Absensi, klik tombol Unduh PDF di atas riwayat presensi Anda untuk mendapatkan tanda terima real-time.
+            </p>
+        </div>
+        <!-- PANDUAN BARU UNTUK MAHASISWA -->
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question"></i> Berapa batas waktu melakukan presensi harian?
+            </h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                Presensi hanya bisa dilakukan secara real-time pada hari H selama form absensi dibuka. Jika Anda melewatkan jam absensi, sistem akan otomatis mengunci dan Anda harus melapor ke <b>Admin/Dosen</b> untuk perubahan manual.
+            </p>
+        </div>`;
+
+    c.innerHTML = `
+        <div class="glass-card p-8 rounded-3xl shadow-sm max-w-3xl mx-auto animate-fade-in">
+            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                    <i class="fa-solid fa-life-ring"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Pusat Bantuan (FAQ)</h3>
+                    <p class="text-xs text-slate-500">Panduan operasional dan resolusi kendala sistem berdasarkan hak akses Anda.</p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                ${faq}
+            </div>
+        </div>`;
+}
+
+function renderProfile(c) {
+    c.innerHTML = `
+        <div class="glass-card p-8 rounded-3xl shadow-sm max-w-2xl mx-auto animate-fade-in relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+            <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+            <div class="relative z-10 flex flex-col items-center mt-6">
+                <!-- Klik area ini akan memicu input file di bawahnya -->
+                <div class="relative group cursor-pointer" onclick="document.getElementById('profilePicInput').click()">
+                    <div class="w-24 h-24 bg-white dark:bg-slate-800 rounded-full p-1 shadow-xl">
+                        <div class="w-full h-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center text-4xl font-bold text-slate-400 dark:text-slate-500 relative">
+                            ${currentUser.avatar ? `<img src="${currentUser.avatar}" class="w-full h-full object-cover">` : currentUser.name.charAt(0)}
+                        </div>
+                    </div>
+                    <!-- Input file manager tersembunyi -->
+                    <input type="file" id="profilePicInput" accept="image/*" class="hidden" onchange="handleProfilePic(this)">
+                    <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-camera text-base"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mt-3 text-slate-800 dark:text-slate-100">${currentUser.name}</h3>
+                <p class="text-xs text-slate-400 capitalize mt-0.5">${currentUser.role}</p>
+            </div>
+            
+            <form id="profileForm" class="mt-8 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">Nama Lengkap</label>
+                        <input type="text" id="pfName" value="${currentUser.name}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">Email</label>
+                        <input type="email" id="pfEmail" value="${currentUser.email}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required>
+                    </div>
+                </div>
+                
+                ${currentUser.role === 'mahasiswa' ? `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">NIM</label>
+                        <input type="text" id="pfNim" value="${currentUser.nim}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">No Telepon</label>
+                        <input type="text" id="pfTelp" value="${currentUser.telepon}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">Program Studi</label>
+                        <input type="text" id="pfProdi" value="${currentUser.prodi}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 text-sm cursor-not-allowed" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">Kelas</label>
+                        <input type="text" id="pfKelas" value="${currentUser.kelas}" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 text-sm cursor-not-allowed" disabled>
+                    </div>
+                </div>` : ''}
+                
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-500 dark:text-slate-400">Password Baru (Kosongkan bila tetap)</label>
+                    <input type="password" id="pfPass" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md text-sm mt-4 transition-all">Simpan Profil</button>
+            </form>
+        </div>`;
+    
+    document.getElementById('profileForm').onsubmit = e => { 
+        e.preventDefault(); 
+        currentUser.name = document.getElementById('pfName').value; 
+        currentUser.email = document.getElementById('pfEmail').value; 
+        if(currentUser.role === 'mahasiswa') {
+            currentUser.nim = document.getElementById('pfNim').value; 
+            currentUser.telepon = document.getElementById('pfTelp').value;
+        } 
+        const np = document.getElementById('pfPass').value; 
+        if(np) currentUser.password = np; 
+        const idx = usersData.findIndex(u => u.id === currentUser.id); 
+        usersData[idx] = currentUser; 
+        DB.save('sitd_users', usersData); 
+        sessionStorage.setItem('sitd_session', JSON.stringify(currentUser)); 
+        Swal.fire('Tersimpan', 'Profil diperbarui', 'success'); 
+        switchPage('profile'); 
+    };
+}
+
+// --- FUNGSI PROSES FOTO UNTUK SEMUA PENGAKSES (PANGKAS TENGAH & KUALITAS HD) ---
+function handleProfilePic(input) { 
+    if (input.files && input.files[0]) { 
+        const file = input.files[0];
+        const r = new FileReader(); 
+        
+        r.onload = (e) => { 
+            const img = new Image();
+            img.src = e.target.result;
+            
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 1. Atur resolusi target yang cukup besar dan tajam (400x400 piksel)
+                const TARGET_SIZE = 400;
+                canvas.width = TARGET_SIZE;
+                canvas.height = TARGET_SIZE;
+                
+                // 2. Logika Pangkas Kotak Otomatis Tepat di Tengah (Center Cropping)
+                let sourceX = 0;
+                let sourceY = 0;
+                let sourceWidth = img.width;
+                let sourceHeight = img.height;
+                
+                if (img.width > img.height) {
+                    // Jika gambar melebar (landscape): potong sisi kanan & kiri
+                    sourceWidth = img.height;
+                    sourceX = (img.width - img.height) / 2;
+                } else if (img.height > img.width) {
+                    // Jika gambar memanjang (portrait): potong sisi atas & bawah
+                    sourceHeight = img.width;
+                    sourceY = (img.height - img.width) / 2;
+                }
+                
+                // 3. Proses penggambaran dan pemotongan ke canvas
+                ctx.drawImage(
+                    img, 
+                    sourceX, sourceY, sourceWidth, sourceHeight, // Area asal yang dipotong
+                    0, 0, TARGET_SIZE, TARGET_SIZE              // Hasil akhir kotak sempurna
+                );
+                
+                // 4. Konversi ke Base64 dengan kualitas 95% (Sangat Jernih / Anti-Burem)
+                // Ukuran file tetap sangat efisien (~60-90KB) sehingga awet di LocalStorage
+                const highQualityBase64 = canvas.toDataURL('image/jpeg', 0.95);
+                
+                // 5. Update data avatar user yang sedang aktif
+                currentUser.avatar = highQualityBase64; 
+                const idx = usersData.findIndex(u => u.id === currentUser.id); 
+                usersData[idx] = currentUser; 
+                
+                // 6. Simpan permanen ke Database agar tidak hilang saat di-refresh
+                DB.save('sitd_users', usersData); 
+                sessionStorage.setItem('sitd_session', JSON.stringify(currentUser)); 
+                
+                // 7. Refresh halaman profil untuk melihat hasilnya langsung
+                switchPage('profile'); 
+                Swal.fire({
+                    toast: true, 
+                    position: 'top-end', 
+                    icon: 'success', 
+                    title: 'Foto profil berhasil diperbarui', 
+                    showConfirmButton: false, 
+                    timer: 1500
+                }); 
+            };
+        }; 
+        r.readAsDataURL(file); 
+    } 
+}
+        // --- ASISTEN AI ---
+        function setupBotOptions() {
+            const opts = document.getElementById('botOptions');
+            if(currentUser.role==='admin') {
+                opts.innerHTML = `<button onclick="askBot('Berapa statistik tugas yang sudah masuk?')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-left border hover:bg-indigo-100 text-[11px] font-semibold shadow-sm w-fit">📊 Rangkum Statistik Tugas</button><button onclick="askBot('Bagaimana cara melihat rekap mahasiswa?')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-left border hover:bg-indigo-100 text-[11px] font-semibold shadow-sm w-fit mt-2">👥 Cara Melihat Rekap</button>`;
+            } else {
+                opts.innerHTML = `<button onclick="askBot('Apa saja tugas yang belum saya kerjakan?')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-left border hover:bg-indigo-100 text-[11px] font-semibold shadow-sm w-fit">📝 Tugas Belum Selesai</button><button onclick="askBot('Bagaimana cara absen hari ini?')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-left border hover:bg-indigo-100 text-[11px] font-semibold shadow-sm w-fit mt-2">📅 Cara Presensi</button>`;
+            }
+        }
+        function toggleChatbot() { document.getElementById('chatbotBox').classList.toggle('hidden'); }
+        function handleChatEnter(e) { if(e.key === 'Enter') sendChat(); }
+        function sendChat() { const i = document.getElementById('aiChatInput'); const m = i.value.trim(); if(!m)return; i.value=''; askBot(m); }
+        function askBot(msg) {
+            const logs = document.getElementById('chatLogs');
+            logs.innerHTML += `<div class="flex gap-2 items-end justify-end text-right animate-fade-in mt-4"><div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-br-none max-w-[80%] shadow-sm text-xs">${msg}</div><div class="w-8 h-8 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center font-bold shrink-0 text-xs shadow-inner">👤</div></div>`;
+            logs.scrollTop = logs.scrollHeight;
+            
+            let rep = "Maaf, saya hanya mengerti pertanyaan seputar tugas, absensi, dan sistem SITD ini. 🤖";
+            const q = msg.toLowerCase();
+            if(currentUser.role === 'admin') {
+                if(q.includes('statistik') || q.includes('tugas')) rep = `Total ada ${tasksData.length} tugas dibuat dan ${submissionsData.length} pengumpulan masuk dari mahasiswa.`;
+                else if(q.includes('rekap') || q.includes('absen')) rep = `Ke menu Data Absensi atau Pengumpulan. Anda bisa memfilter berdasarkan prodi (TI, SI, Industri) dan turunannya.`;
+            } else {
+                if(q.includes('belum') || q.includes('tugas')) rep = `Tugas aktif saat ini ada ${tasksData.length - submissionsData.filter(s=>s.userId===currentUser.id).length}. Cek menu "Tugas Saya" ya!`;
+                else if(q.includes('absen') || q.includes('hadir')) rep = `Buka menu "Data Absensi", pilih status, isi keterangan, lalu klik Rekam Kehadiran.`;
+            }
+
+            setTimeout(() => {
+                logs.innerHTML += `<div class="flex gap-2 items-end animate-fade-in mt-4"><div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shrink-0 font-bold shadow-sm">🤖</div><div class="bg-white p-3 rounded-2xl rounded-bl-none shadow-sm max-w-[80%] border border-slate-100 text-xs">${rep}</div></div>`;
+                logs.scrollTop = logs.scrollHeight;
+            }, 700);
+        }
+
+        // --- UTILS ---
+        function downloadFile(base64, filename) { const a=document.createElement('a'); a.href=base64; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tasksData), "Daftar Tugas");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(submissionsData.map(s=>({Nama:s.namaMhs, Prodi:s.prodi, Kelas:s.kelas, Tugas:s.judulTugas, Waktu:s.waktu, Nilai:s.nilai||'-'}))), "Pengumpulan");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(absensiData), "Absensi");
+            XLSX.writeFile(wb, `Rekap_Admin_SITD.xlsx`); Swal.fire('Sukses', 'Data Admin diunduh ke Excel.', 'success');
+        }
+        function exportAbsensiPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            const data = currentUser.role === 'admin' ? absensiData : absensiData.filter(a=>a.userId === currentUser.id);
+            doc.text(`Laporan Absensi ${currentUser.role==='admin'?'Semua Mahasiswa':currentUser.name}`, 14, 15);
+            doc.autoTable({ head: [['Nama Mahasiswa','Prodi / Kelas','Status','Waktu']], body: data.map(a => [a.nama, `${a.prodi}-${a.kelas}`, a.status, a.waktu]), startY: 25 });
+            doc.save(`Absensi_${currentUser.role==='admin'?'Rekap':currentUser.name.split(' ')[0]}.pdf`);
+        }
+    </script>
+</body>
+</html>
